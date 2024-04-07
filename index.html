@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen, print"/>
+<title>MastodonRetootBookmarklet</title> 
+</head>
+<body>
+<div class="page">
+<h1>MastodonRetootBookmarklet</h1>
+
+
+<h2>Get it &#x1F447;</h2>
+
+Drag the link below to the bookmarks/favorites bar at the top of your browser window. That's it — you're ready to roll!<br /><br />
+<a href="javascript: (() =&gt; {   const debug = true;   /* *** Gather host and post information from url *** */   const origin = window.location.origin;   if (debug) { console.log('Origin: ' + origin); }   const currentUrl = window.location.href;   if (debug) { console.log('Url: ' + currentUrl); }   var postIdOnThisInstance = '';   if (currentUrl.length &gt; (currentUrl.lastIndexOf('/') + 1)) {      postIdOnThisInstance = currentUrl.substring(currentUrl.lastIndexOf('/') + 1, currentUrl.length);   }   if (debug) { console.log('postIdOnThisInstance: ' + postIdOnThisInstance); }   /* *** Request post text via API *** */   const getContentApiUrl = origin + '/api/v1/statuses/' + postIdOnThisInstance;  /* *** pulls the HTML-encoded content field that is accessible without authorization *** */   if (debug) { console.log('getContentApiUrl: ' + getContentApiUrl); }     fetch(getContentApiUrl)     .then(response =&gt; {        if (!response.ok) {           console.error(response);  /* polish this on release */        }        return response.json();     })     .then(data =&gt; {        if (debug) { console.log('data.content (before HTML-decoding): ' + data.content); }        /* *** HTML-decode our content field *** */        /* HTML-decode 1. Create an HTML text area box to do this for us */        var decoderTextArea = document.createElement('decoderTextArea'), body = document.body;        decoderTextArea.style.display = 'none';        document.body.appendChild(decoderTextArea);        /* HTML-decode 2. Tidy up the content data we received so line breaks are not lost  */        var htmlContent = data.content;        htmlContent = htmlContent.split('&lt;/p&gt;&lt;p&gt;').join('&lt;/p&gt;\n\n&lt;p&gt;');        htmlContent = htmlContent.split('&lt;br /&gt;').join('&lt;br /&gt;\n');        if (debug) { console.log('htmlContent (before HTML-decoding but after newline fixes): ' + htmlContent); }        decoderTextArea.innerHTML = htmlContent;        /* HTML-decode 3. Pull the text back out of the HTML text area box, which does the decode for us  */        var htmlDecodedContent = decoderTextArea.innerText;        if (debug) { console.log('htmlDecodedContent (after HTML-decoding): ' + htmlDecodedContent);  }        /* *** Add source and source post url *** */        const sourceUrl = window.location.href;        var secondToLastSlashIndex = sourceUrl.lastIndexOf('/', (sourceUrl.lastIndexOf('/') - 1));        var sourceTag = sourceUrl.substring(secondToLastSlashIndex + 1, sourceUrl.lastIndexOf('/'));        htmlDecodedContent = 'via ' + sourceTag + ' (' + sourceUrl + ', retooting to add CW)\n\n' + htmlDecodedContent;        /* *** URI-encode our content field so we can submit it back to the Mastodon API to create the status posting page *** */        const urlEncodedContent = encodeURIComponent(htmlDecodedContent);        if (debug) { console.log('urlEncodedContent (ready to re-submit): ' + urlEncodedContent);  }        const repostApiUrl = origin + '/share?text=' + urlEncodedContent;  /* *** will redirect to a posting dialogue on the instance pre-populated with the specified status text *** */        if (debug) { console.log('repostApiUrl: ' + repostApiUrl); }          /* *** Open the status posting page in a new tab *** */        window.open(repostApiUrl, '_blank').focus();     })     .catch(error =&gt; {        console.error('Error:', error);     });})();">Add CW</a>
+
+<hr />
+<h2>Use it</h2>
+Expand the toot you wish to share in the Mastodon web interface on your instance while logged in, in either the classic view or the advanced view. Then click the bookmarklet in your bookmark/favorites bar.<br /><br />
+A new tab should open showing the composer, pre-populated with the text from the toot you want to share. You can make edits and add a content warning, and then publish, within a few seconds &mdash; or take as long as you want!<br /><br />
+
+<hr />
+<h2>Why</h2>
+Ever seen an important toot you'd like to boost, but noticed it didn't have a content warning and wished you could add one? Frustrating, isn't it?<br /><br />
+Content warnings are a great way to let your followers and others who may see your toots decide whether they want to engage with that content when it appears in their feed. They allow people to choose how and when they engage with challenging content, whatever it may be, and ultimately keep people engaged by allowing them to follow their feeds without distress.<br /><br/ >
+But manually reposting toots with content warnings is time consuming.<br /><br />
+This bookmarklet aims to help, by copying the content of an existing toot into the composer, with a link to the original post and a credit to the poster, so you can add your own content warning and just hit "Publish".<br /><br />
+<br /><br />
+<br /><br />
+</div>
+</body>
+</html>
